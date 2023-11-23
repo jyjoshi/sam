@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Object Detection Interface</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.11/cropper.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <input type="file" id="imageInput" accept="image/*" />
+    <div id="imageArea" style="width: 100%; height: 400px"></div>
+    <button id="sendButton">Detect Object</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.11/cropper.min.js"></script>
+    <script>
+      let cropper;
+      document
+        .getElementById("imageInput")
+        .addEventListener("change", function (e) {
+          const files = e.target.files;
+          const imageUrl = URL.createObjectURL(files[0]);
+
+          document.getElementById(
+            "imageArea"
+          ).innerHTML = `<img id="image" src="${imageUrl}">`;
+          const image = document.getElementById("image");
+          cropper = new Cropper(image, {
+            aspectRatio: 16 / 9,
+            viewMode: 1,
+            autoCropArea: 0.65,
+            restore: false,
+            guides: false,
+            center: false,
+            highlight: false,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            zoomable: false,
+          });
+        });
+
+      document
+        .getElementById("sendButton")
+        .addEventListener("click", function () {
+          const croppedCanvas = cropper.getCroppedCanvas();
+          croppedCanvas.toBlob(function (blob) {
+            const formData = new FormData();
+            // console.log("Blob: ", blob);
+            // console.log("Image: ", image);
+            formData.append("croppedImage", blob, "image.png");
+
+            console.log("Form Data: ", formData);
+
+            // Replace above image with blob.
+
+            // Replace with your back-end endpoint
+            fetch("http://127.0.0.1:5000/predict", {
+              method: "POST",
+              body: formData,
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                console.log(data);
+                // Process and display the returned data
+              })
+              .catch((error) => {
+                console.error(error);
+              });
+          });
+        });
+    </script>
+  </body>
+</html>
